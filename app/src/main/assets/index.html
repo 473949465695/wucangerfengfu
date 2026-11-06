@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#101827">
+<title>吾苍耳冯福 · 密码编辑器</title>
+<style>
+:root{color-scheme:dark;--bg:#0b1220;--panel:rgba(18,29,46,.96);--line:#29384d;--text:#edf3fb;--muted:#9aabc0;--accent:#79d7c5;--field:#0b1422;--notice:#1a2a3c;--button:#263950;--button-text:#edf3fb;--chip:#18283d;--chip-line:#3a526b;--notice-text:#d5e1ed;--shadow:#0004}
+:root[data-theme="light"]{color-scheme:light;--bg:#f2f6fa;--panel:rgba(255,255,255,.96);--line:#cbd8e5;--text:#1d2a39;--muted:#53677d;--accent:#087e70;--field:#ffffff;--notice:#edf4f8;--button:#e7eef5;--button-text:#24364a;--chip:#e6f0f5;--chip-line:#b8ccd9;--notice-text:#26394b;--shadow:#24364a22}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(135deg,var(--bg),#1a3148);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif;min-height:100vh;padding:28px 16px;overflow-x:hidden;transition:background .25s,color .25s}
+:root[data-theme="light"] body{background:linear-gradient(135deg,#f2f6fa,#dceaf0)}
+.bread-field{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0;opacity:.24}
+.bread{position:absolute;bottom:-90px;font-size:clamp(25px,4vw,46px);filter:drop-shadow(0 5px 7px #0002);animation:floatBread linear infinite}
+.bread:nth-child(1){left:7%;animation-duration:19s;animation-delay:-8s}
+.bread:nth-child(2){left:24%;font-size:32px;animation-duration:23s;animation-delay:-15s}
+.bread:nth-child(3){left:43%;animation-duration:17s;animation-delay:-4s}
+.bread:nth-child(4){left:64%;font-size:38px;animation-duration:25s;animation-delay:-18s}
+.bread:nth-child(5){left:83%;animation-duration:21s;animation-delay:-11s}
+@keyframes floatBread{0%{transform:translate3d(0,0,0) rotate(-18deg);opacity:0}10%{opacity:.9}50%{transform:translate3d(35px,-55vh,0) rotate(16deg)}90%{opacity:.8}100%{transform:translate3d(-25px,-115vh,0) rotate(35deg);opacity:0}}
+main,.theme-toggle{position:relative;z-index:1}
+.theme-toggle{display:flex;justify-content:flex-end;max-width:850px;margin:0 auto 8px}
+.theme-toggle button{background:var(--button);color:var(--button-text);border:1px solid var(--line)}
+main{max-width:850px;margin:auto}.hero{text-align:center;margin:10px 0 28px}.hero h1{font-size:clamp(27px,5vw,40px);margin:0 0 8px;letter-spacing:2px}.hero p,.muted{color:var(--muted)}.alphabet{display:inline-flex;gap:9px;margin-top:8px}.alphabet span{display:grid;place-items:center;width:43px;height:43px;border:1px solid var(--chip-line);border-radius:12px;background:var(--chip);color:var(--accent);font-size:22px;font-weight:700}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 18px 50px var(--shadow)}
+label{display:block;font-weight:650;margin:0 0 9px}textarea{width:100%;min-height:170px;resize:vertical;background:var(--field);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:14px;font:15px/1.65 ui-monospace,SFMono-Regular,Consolas,monospace;outline:none}textarea:focus{border-color:var(--accent);box-shadow:0 0 0 3px #79d7c522}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin:15px 0 20px}button{border:0;border-radius:10px;padding:11px 17px;font-weight:700;cursor:pointer;background:var(--accent);color:#09201d}button.secondary{background:var(--button);color:var(--button-text);border:1px solid var(--line)}button:hover{filter:brightness(1.08)}.output-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:5px 0 9px}.output-head label{margin:0}.small{font-size:13px;color:var(--muted)}
+.disclaimer ul{padding-left:21px;margin:8px 0}.disclaimer li{margin:6px 0;color:var(--notice-text)}.notice{margin-top:17px;padding:13px 15px;background:var(--notice);border:1px solid var(--line);border-radius:12px;color:var(--notice-text);font-size:13px}.status{min-height:24px;color:var(--accent);font-size:14px;margin-top:8px;overflow-wrap:anywhere}
+
+/* More varied floating bread decorations */
+.bread-field{opacity:.30}
+.bread{will-change:transform;user-select:none}
+.bread:nth-child(6){left:14%;font-size:24px;animation-duration:28s;animation-delay:-21s}
+.bread:nth-child(7){left:34%;font-size:35px;animation-duration:20s;animation-delay:-12s}
+.bread:nth-child(8){left:54%;font-size:27px;animation-duration:26s;animation-delay:-19s}
+.bread:nth-child(9){left:74%;font-size:44px;animation-duration:18s;animation-delay:-7s}
+.bread:nth-child(10){left:92%;font-size:29px;animation-duration:24s;animation-delay:-16s}
+.bread:nth-child(11){left:3%;font-size:31px;animation-duration:22s;animation-delay:-5s}
+.bread:nth-child(12){left:48%;font-size:22px;animation-duration:30s;animation-delay:-25s}
+.bread:nth-child(13){left:87%;font-size:36px;animation-duration:27s;animation-delay:-13s}
+.consent-overlay{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(3,9,18,.78);backdrop-filter:blur(7px)}
+.consent-box{width:min(680px,100%);max-height:min(86vh,800px);overflow:auto;background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:20px;padding:23px;box-shadow:0 24px 80px #0008}
+.consent-box h2{margin:0 0 5px;font-size:24px}.consent-box p{color:var(--muted);margin:0 0 12px}.consent-copy{background:var(--notice);border:1px solid var(--line);border-radius:12px;padding:14px;color:var(--notice-text);font-size:14px;line-height:1.65}.consent-copy ul{padding-left:20px;margin:8px 0}.consent-copy li{margin:6px 0}
+.consent-actions{display:flex;gap:12px;margin-top:18px}.consent-actions button{flex:1}.consent-actions .disagree{background:#8b3440;color:white}
+.exit-screen{position:fixed;inset:0;z-index:30;display:grid;place-items:center;text-align:center;padding:24px;background:var(--bg);color:var(--text)}
+@media(prefers-reduced-motion:reduce){.bread{animation:none;display:none}*{scroll-behavior:auto!important}}
+
+
+.credits{position:relative;z-index:1;max-width:850px;margin:18px auto 8px;padding:16px 20px;text-align:center;border:1px solid var(--line);border-radius:14px;background:var(--panel);color:var(--muted);font-size:14px;line-height:1.9}
+.credits strong{color:var(--text);font-size:15px}
+.credits .copyright{margin-top:4px;color:var(--accent);font-weight:750;letter-spacing:.5px}
+
+@media(max-width:520px){body{padding:18px 12px}.panel{padding:16px}textarea{min-height:145px}.actions button{flex:1}}
+</style>
+</head>
+<body>
+<div class="bread-field" aria-hidden="true">
+  <span class="bread">🍞</span><span class="bread">🥖</span><span class="bread">🍞</span><span class="bread">🥐</span><span class="bread">🍞</span><span class="bread">🥯</span><span class="bread">🥐</span><span class="bread">🍞</span><span class="bread">🥖</span><span class="bread">🍞</span><span class="bread">🥨</span><span class="bread">🥯</span><span class="bread">🥐</span>
+</div>
+<div class="theme-toggle"><button id="themeToggle" type="button" aria-label="切换深浅色">☀️ 浅色模式</button></div>
+<div class="consent-overlay" id="consentOverlay" role="dialog" aria-modal="true" aria-labelledby="consentTitle">
+  <div class="consent-box">
+    <h2 id="consentTitle">使用须知与免责声明</h2>
+    <p>请先阅读以下内容。选择“同意”后才能进入密码编辑器。</p>
+    <div class="consent-copy">
+      <strong>免责声明</strong>
+      <ul>
+        <li>本工具仅供学习、文字编码、趣味交流及合法的个人用途，不应被视为专业的信息安全产品。</li>
+        <li>本工具使用可逆编码方式转换文字，并未提供密码学意义上的加密、身份验证或访问控制；请勿用它保存或传输账号密码、银行卡资料、个人隐私、商业机密等敏感信息。</li>
+        <li>开发者不对因使用、误用、无法解码、浏览器兼容性、设备故障或第三方获取密文而导致的资料丢失、泄露或其他损失承担保证责任。使用前请自行备份重要内容。</li>
+        <li>请确保输入、转换、保存及分享的内容符合所在地法律法规，并尊重他人隐私及合法权益。用户须对自己的使用行为和分享内容负责。</li>
+        <li>本页面在浏览器本地执行转换，不主动上传文本；但浏览器扩展、设备环境、系统剪贴板及用户自行分享等因素仍可能影响信息安全。</li>
+      </ul>
+      <strong>继续使用本工具，即表示你已阅读并理解以上说明；如不同意，请停止使用。</strong>
+    </div>
+    <div class="consent-actions">
+      <button id="agreeConsent" type="button">同意并进入</button>
+      <button id="disagreeConsent" class="disagree" type="button">不同意，退出网页</button>
+    </div>
+  </div>
+</div>
+<main>
+<header class="hero">
+  <h1>吾苍耳冯福</h1>
+  <div class="muted">五字编码 · 双向转换 · 本地运行</div>
+  <div class="alphabet" aria-label="编码字符"><span>吾</span><span>苍</span><span>耳</span><span>冯</span><span>福</span></div>
+</header>
+<section class="panel">
+  <label for="source">输入内容</label>
+  <textarea id="source" placeholder="输入任意文字、数字、符号或其他语言……"></textarea>
+  <div class="actions">
+    <button id="encode">加密 / 转换 ↓</button>
+    <button id="decode" class="secondary">↑ 解密 / 还原</button>
+    <button id="swap" class="secondary">结果移到输入框</button>
+    <button id="clear" class="secondary">清空</button>
+  </div>
+  <div class="output-head">
+    <label for="result">转换结果</label>
+    <button id="copy" class="secondary" type="button">复制结果</button>
+  </div>
+  <textarea id="result" placeholder="转换结果会显示在这里……" readonly></textarea>
+  <div id="status" class="status" role="status" aria-live="polite"></div>
+  <div class="notice">
+    <strong>编码说明：</strong>每个 UTF-8 字节转换为 4 个五进制字符，因此可以无损还原各种 Unicode 文本。此方法是可逆编码/混淆，不是具备密钥保护的加密；任何拿到密文的人都可以还原。
+  </div>
+  <div class="notice disclaimer">
+    <strong>免责声明</strong>
+    <ul>
+      <li>本工具仅供学习、文字编码、趣味交流及合法的个人用途，不应被视为专业的信息安全产品。</li>
+      <li>本工具使用可逆编码方式转换文字，并未提供密码学意义上的加密、身份验证或访问控制；请勿用它保存或传输账号密码、银行卡资料、个人隐私、商业机密等敏感信息。</li>
+      <li>开发者不对因使用、误用、无法解码、浏览器兼容性、设备故障或第三方获取密文而导致的资料丢失、泄露或其他损失承担保证责任。使用前请自行备份重要内容。</li>
+      <li>请确保输入、转换、保存及分享的内容符合所在地法律法规，并尊重他人隐私及合法权益。用户须对自己的使用行为和分享内容负责。</li>
+      <li>本页面在浏览器本地执行转换，不主动上传文本；但浏览器扩展、设备环境、系统剪贴板及用户自行分享等因素仍可能影响信息安全。</li>
+    </ul>
+    <div class="small">继续使用本工具，即表示你已阅读并理解以上说明；如不同意，请停止使用。</div>
+  </div>
+</section>
+</main>
+
+<footer class="credits" aria-label="网页制作信息">
+  <div><strong>由 chatgpt.com 编写这个网页</strong></div>
+  <div>作者：一冷静的人</div>
+  <div>特别感谢：徐-新，聂--</div>
+  <div class="copyright">未经允许禁止搬运</div>
+</footer>
+
+<script>
+(() => {
+  "use strict";
+  const alphabet = ["吾","苍","耳","冯","福"];
+  const source = document.getElementById("source");
+  const result = document.getElementById("result");
+  const status = document.getElementById("status");
+  const themeToggle = document.getElementById("themeToggle");
+  const consentOverlay = document.getElementById("consentOverlay");
+  const root = document.documentElement;
+  document.getElementById("agreeConsent").addEventListener("click", () => {
+    consentOverlay.style.display = "none";
+    source.focus();
+  });
+  document.getElementById("disagreeConsent").addEventListener("click", () => {
+    document.body.innerHTML = '<div class="exit-screen"><div><h2>你已选择不同意</h2><p>网页已停止使用。你可以关闭此浏览器标签页。</p></div></div>';
+    try { window.close(); } catch (_) {}
+  });
+  const savedTheme = localStorage.getItem("wcf-theme");
+  if (savedTheme === "light" || savedTheme === "dark") root.dataset.theme = savedTheme;
+  function refreshThemeButton() {
+    const isLight = root.dataset.theme === "light";
+    themeToggle.textContent = isLight ? "🌙 深色模式" : "☀️ 浅色模式";
+    themeToggle.setAttribute("aria-label", isLight ? "切换深色模式" : "切换浅色模式");
+  }
+  refreshThemeButton();
+  themeToggle.addEventListener("click", () => {
+    root.dataset.theme = root.dataset.theme === "light" ? "dark" : "light";
+    localStorage.setItem("wcf-theme", root.dataset.theme);
+    refreshThemeButton();
+  });
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder("utf-8", {fatal:true});
+
+  // 0..255 用固定 4 位五进制表示（最大可表示到 624）。
+  function encodeText(text) {
+    const bytes = encoder.encode(text);
+    let out = "";
+    for (const byte of bytes) {
+      let n = byte;
+      const digits = [0,0,0,0];
+      for (let i=3; i>=0; i--) { digits[i] = n % 5; n = Math.floor(n / 5); }
+      for (const d of digits) out += alphabet[d];
+    }
+    return out;
+  }
+  function decodeText(cipher) {
+    // 允许用户为了阅读而加入空格、换行；非五字字符会被拒绝，避免静默损坏。
+    const compact = cipher.replace(/\s+/gu, "");
+    if (compact.length % 4 !== 0) {
+      throw new Error("密文长度不正确：有效字符数量必须是 4 的倍数。");
+    }
+    const bytes = new Uint8Array(compact.length / 4);
+    for (let i=0; i<compact.length; i+=4) {
+      let value = 0;
+      for (let j=0; j<4; j++) {
+        const digit = alphabet.indexOf(compact[i+j]);
+        if (digit < 0) throw new Error("发现无效字符：「" + compact[i+j] + "」。密文只能包含吾、苍、耳、冯、福。");
+        value = value * 5 + digit;
+      }
+      if (value > 255) throw new Error("密文包含超出有效范围的编码，无法还原。");
+      bytes[i/4] = value;
+    }
+    try { return decoder.decode(bytes); }
+    catch { throw new Error("密文不是有效的 UTF-8 数据，无法还原。"); }
+  }
+  function show(message) { status.textContent = message; }
+  document.getElementById("encode").addEventListener("click", () => {
+    try { result.value = encodeText(source.value); show("转换完成。"); }
+    catch(e) { show(e.message); }
+  });
+  document.getElementById("decode").addEventListener("click", () => {
+    try { result.value = decodeText(source.value); show("还原完成。"); }
+    catch(e) { result.value = ""; show(e.message); }
+  });
+  document.getElementById("swap").addEventListener("click", () => {
+    source.value = result.value; result.value = ""; show("已将结果移到输入框。");
+  });
+  document.getElementById("clear").addEventListener("click", () => {
+    source.value = ""; result.value = ""; show("已清空。"); source.focus();
+  });
+  document.getElementById("copy").addEventListener("click", async () => {
+    if (!result.value) { show("目前没有可复制的结果。"); return; }
+    try {
+      await navigator.clipboard.writeText(result.value);
+      show("已复制到剪贴板。");
+    } catch {
+      result.focus(); result.select();
+      show("浏览器未允许自动复制，请手动复制选中的内容。");
+    }
+  });
+})();
+</script>
+</body>
+</html>
